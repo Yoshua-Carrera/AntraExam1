@@ -109,7 +109,7 @@ const view = (() => {
 
             if (obj.isCompleted) {
                 templateCompleted += `
-                <li class="list-element ${obj.id}" id=${obj.id} onclick="controller.editTodo(event)">
+                <li class="list-element ${obj.id}" id=${obj.id} onclick="">
                     <div class="todo-text">
                         <span>${obj.content}</span>
                     </div>
@@ -121,7 +121,7 @@ const view = (() => {
                 `;
             } else {
                 templatePending += `
-                <li class="list-element ${obj.id}" id=${obj.id} onclick="controller.editTodo(event)">
+                <li class="list-element ${obj.id}" id=${obj.id} onclick="">
                     <div class="todo-text">
                         <span>${obj.content}</span>
                     </div>
@@ -237,6 +237,7 @@ const controller = ((model, view) => {
         console.log(event.target.className);
         [className, id] = event.target.className.split(" ");
         console.log(id);
+        // liElement.removeEventListener("onclick", controller.editTodo(event));
         event.currentTarget.querySelector("span").innerHTML = `<input onkeyup="controller.submitEdit(event, ${id})"></input>`;
     };
 
