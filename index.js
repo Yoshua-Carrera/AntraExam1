@@ -109,7 +109,7 @@ const view = (() => {
 
             if (obj.isCompleted) {
                 templateCompleted += `
-                <li class="list-element ${obj.id}" id=${obj.id} onclick="">
+                <li class="list-element ${obj.id}" id=${obj.id} >
                     <div class="todo-text">
                         <span>${obj.content}</span>
                     </div>
@@ -121,7 +121,7 @@ const view = (() => {
                 `;
             } else {
                 templatePending += `
-                <li class="list-element ${obj.id}" id=${obj.id} onclick="">
+                <li class="list-element ${obj.id}" id=${obj.id} >
                     <div class="todo-text">
                         <span>${obj.content}</span>
                     </div>
