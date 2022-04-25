@@ -234,7 +234,21 @@ const controller = ((model, view) => {
     const editTodo = (event) => {
         console.log("editTodo");
         const liElement = document.querySelector(view.viewElements.liElement);
-        console.log(event.currentTarget.querySelector("span"));
+        console.log(event.target.className);
+        [className, id] = event.target.className.split(" ");
+        console.log(id);
+        event.currentTarget.querySelector("span").innerHTML = `<input onkeyup="controller.submitEdit(event, ${id})"></input>`;
+    };
+
+    const submitEdit = (event, id) => {
+        console.log(event);
+        console.log(id);
+        const tempTodo = new model.todo();
+        if (event.key === "Enter") {
+            tempTodo.title = event.target.value;
+            model.putData("PUT", "todos", id);
+            event.currentTarget.querySelector("span").innerHTML = `<span></span>`;
+        }
     };
 
     const deleteTodo = (event) => {
@@ -274,7 +288,7 @@ const controller = ((model, view) => {
         });
     };
 
-    return { init, deleteTodo, editTodo, changeStatusTodo };
+    return { init, deleteTodo, editTodo, changeStatusTodo, submitEdit };
 })(model, view);
 
 controller.init();

@@ -36,6 +36,9 @@ li {
     /* background-image: ; */
     pointer-events: none;
 }
+.todo-buttons {
+    pointer-events: none;
+}
 
 .delete {
     background-color: var(--Vermillion-red);
