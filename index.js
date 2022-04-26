@@ -273,14 +273,18 @@ const controller = ((model, view) => {
         const liElement = document.querySelectorAll(view.viewElements.liElement);
 
         liElement.forEach((element) => {
-            element.addEventListener("click", (event) => {
-                const [classname, id] = event.target.className.split(" ");
-                const innerEleHTML = event.currentTarget.innerHTML;
-                event.currentTarget.innerHTML = innerEleHTML.replaceAll(
-                    /<span[^>]*>([^<]+)<\/span>/g,
-                    `<input onkeyup='controller.submitEdit(event, ${id})'></input>`
-                );
-            });
+            element.addEventListener(
+                "click",
+                (event) => {
+                    const [classname, id] = event.target.className.split(" ");
+                    const innerEleHTML = event.currentTarget.innerHTML;
+                    event.currentTarget.innerHTML = innerEleHTML.replaceAll(
+                        /<span[^>]*>([^<]+)<\/span>/g,
+                        `<input onkeyup='controller.submitEdit(event, ${id})'></input>`
+                    );
+                },
+                { once: true }
+            );
         });
     };
 
