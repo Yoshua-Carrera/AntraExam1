@@ -33,8 +33,6 @@ li {
 .edit {
     background-color: var(--Blue);
     width: 20px;
-    /* background-image: ; */
-    pointer-events: none;
 }
 
 .delete {

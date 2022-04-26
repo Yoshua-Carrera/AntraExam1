@@ -109,7 +109,7 @@ const view = (() => {
 
             if (obj.isCompleted) {
                 templateCompleted += `
-                <li class="list-element ${obj.id}" id=${obj.id} >
+                <li class="list-element ${obj.id}" id=${obj.id}>
                     <div class="todo-text">
                         <span>${obj.content}</span>
                     </div>
@@ -121,12 +121,12 @@ const view = (() => {
                 `;
             } else {
                 templatePending += `
-                <li class="list-element ${obj.id}" id=${obj.id} >
+                <li class="list-element ${obj.id}" id=${obj.id}">
                     <div class="todo-text">
                         <span>${obj.content}</span>
                     </div>
                     <div class="todo-buttons">
-                    <button class="edit ${obj.id}"> ${editIcon} </button>
+                    <button class="edit ${obj.id}" > ${editIcon} </button>
                     <button class="delete ${obj.id}" onclick="controller.deleteTodo(event)"> ${deleteIcon} </button>
                     <button class="complete-status ${obj.id}" onclick="controller.changeStatusTodo(event)"> ${arrowRIcon} </button>
                 </li>
@@ -215,6 +215,7 @@ const controller = ((model, view) => {
                 const response = model.postData("POST", "todos", todo);
                 response.then((todo) => {
                     state.todoList = [todo, ...state.todoList];
+                    controller.editTodo();
                 });
                 event.target.value = "";
             }
@@ -226,6 +227,7 @@ const controller = ((model, view) => {
             response.then((todo) => {
                 console.log(todo);
                 state.todoList = [todo, ...state.todoList];
+                controller.editTodo();
             });
             inputBar.value = "";
         });
@@ -233,22 +235,46 @@ const controller = ((model, view) => {
 
     const editTodo = (event) => {
         console.log("editTodo");
-        const liElement = document.querySelector(view.viewElements.liElement);
-        console.log(event.target.className);
-        [className, id] = event.target.className.split(" ");
-        console.log(id);
-        // liElement.removeEventListener("onclick", controller.editTodo(event));
-        event.currentTarget.querySelector("span").innerHTML = `<input onkeyup="controller.submitEdit(event, ${id})"></input>`;
+        const liElement = document.querySelectorAll(view.viewElements.liElement);
+
+        liElement.forEach((element) => {
+            element.addEventListener("click", (event) => {
+                const [classname, id] = event.target.className.split(" ");
+                const innerEleHTML = event.currentTarget.innerHTML;
+                event.currentTarget.innerHTML = innerEleHTML.replaceAll(
+                    /<span[^>]*>([^<]+)<\/span>/g,
+                    `<input onkeyup='controller.submitEdit(event, ${id})'></input>`
+                );
+            });
+        });
     };
 
     const submitEdit = (event, id) => {
-        console.log(event);
-        console.log(id);
+        const liElement = event.target.parentElement.parentElement;
         const tempTodo = new model.todo();
         if (event.key === "Enter") {
-            tempTodo.title = event.target.value;
-            model.putData("PUT", "todos", id);
-            event.currentTarget.querySelector("span").innerHTML = `<span></span>`;
+            const newTitle = event.currentTarget.value;
+            model.getData("GET", ["todos", id].join("/")).then((data) => {
+                console.log(data);
+                tempTodo.content = newTitle;
+                tempTodo.isCompleted = data.isCompleted;
+                tempTodo.id = data.id;
+                console.log(tempTodo);
+                state.todoList.forEach((obj, i) => {
+                    if (+obj.id === +id) {
+                        console.log(obj);
+                        console.log(i);
+                        console.log(state.todoList);
+                        console.log(newTitle);
+                        state.todoList[i].content = newTitle;
+                    }
+                });
+                state.todoList = [...state.todoList];
+                model.putData("PUT", "todos", id, tempTodo).then(editTodo());
+            });
+
+            const innerEleHTML = liElement.innerHTML;
+            liElement.innerHTML = innerEleHTML.replaceAll(/<input[^>]*onkeyup\s*=\s*["'](.+?)["']\s*[^>]*>/g, `<span>${event.currentTarget.value}</span>`);
         }
     };
 
@@ -257,6 +283,7 @@ const controller = ((model, view) => {
             const [className, id] = event.currentTarget.className.split(" ");
             state.todoList = state.todoList.filter((todo) => +todo.id !== +id);
             model.delData("DELETE", "todos", id);
+            controller.editTodo();
         }
     };
 
@@ -264,20 +291,30 @@ const controller = ((model, view) => {
         console.log("changeStatusTodo");
         if (event) {
             const [className, id] = event.currentTarget.className.split(" ");
-
+            console.log(state.todoList);
             const tempTodo = new model.todo();
-
             state.todoList.forEach((obj, i) => {
                 if (+obj.id === +id) {
+                    console.log(state.todoList[i]);
                     state.todoList[i].isCompleted = !state.todoList[i].isCompleted;
+
+                    console.log("tempTodo.isCompleted pre", tempTodo.isCompleted);
+                    console.log("todoList[i]", state.todoList[i]);
+
                     tempTodo.content = state.todoList[i].content;
-                    tempTodo.isCompleted = !state.todoList[i].isCompleted;
+                    tempTodo.isCompleted = state.todoList[i].isCompleted;
+
+                    console.log("tempTodo.isCompleted post", tempTodo.isCompleted);
+                    console.log("!state.todoList[i].isCompleted post", !state.todoList[i].isCompleted);
                 }
             });
 
+            console.log(tempTodo);
+            console.log(state.todoList);
+
             state.todoList = [...state.todoList];
 
-            model.putData("PUT", "todos", id, tempTodo).then();
+            model.putData("PUT", "todos", id, tempTodo).then((data) => editTodo());
         }
     };
 
@@ -286,6 +323,7 @@ const controller = ((model, view) => {
             state.todoList = todos;
             addNewTodo();
             deleteTodo();
+            editTodo();
         });
     };
 
