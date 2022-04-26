@@ -8,6 +8,12 @@
  *       the fetch functions will take a method, a path (that joins the url) and an id if required
  *       Each fetch function will return a promise which is thenable (has then method), hence, data
  *       can be extracted that way
+ *
+ *       I was debating on wether or not to combine all api calls in a single function, but i decided
+ *       to keep it separated, because even though i could save some lines of code, readability is a lot
+ *       more clear if they stay separate. On top of that, the fact that they have such different needs in
+ *       terms of body/not body, id/no id, meant that the options object would change for every call
+ *       so the lines that would have been omitted were not that significantly considerable
  */
 
 const api = (() => {
@@ -80,6 +86,11 @@ const api = (() => {
  *
  *          The render function will take the template resulting from the previous function and inject it into
  *          the inner html of the target html element
+ *
+ *          Some of the event listeners were injected into the HTML because that way, bubbling leads to the right
+ *          tag being the "current target", if for example it the event listener was put into an outer container
+ *          it would be a lot more complicated getting to its child (who is not the target either), one option would
+ *          have been to use parent methods
  */
 
 const view = (() => {
@@ -154,9 +165,11 @@ const view = (() => {
 /**
  * @model => This function tkes care of everything related the data/data model, in short it contains classes designed
  *           to model class models to describe the data. In other words, a class will be specified so its properties
- *           can contain the data structure returned from the api. (in the case of @class1)
+ *           can contain the data structure returned from the api.
  *
- *           class1 is an class`
+ *           The model contain one of the most important things in the script, which is the setter. It basically allows
+ *           to run a re render everytime there exists a change on the todoList by just reasigning it to a new value
+ *
  */
 
 const model = ((api, view) => {
@@ -195,8 +208,33 @@ const model = ((api, view) => {
 
 /**
  * @controller => controls everything in the web app, it takes all the functionality from the rest of
- *              objects created previously and see its execution through, also containes the addition
- *              of event listeners as well as the functions to be executed from the html event listeners
+ *                 objects created previously and see its execution through, also contains the addition
+ *                 of event listeners as well as the functions to be executed from the html event listeners
+ *
+ *                 The controller is by far the most important piece of code in the script, it allows the entire we app
+ *                 to function, it puts together.
+ *
+ *                 All of the event listeners that were placed into elements that had multiple level of stacking were put
+ *                 into the html tags, to make the most out of the bubbling property. Nonetheless, the @addNewTodo function
+ *                 does inject the listener through "addeventlistener". In fact, 2 separate listeners were added here
+ *                 one for the button and one for the enter key in case the user decides to use that instead
+ *
+ *                 @editTodo was by FAR the hardest one to implement, because not only one of the inner elements had to be replaced
+ *                 by an entirely different tag, listeners haad to be created (and then removed) taking bubbling into account, getting
+ *                 to the right parent/child proved to be a bit challenging, on top of that regex had to be used in order to identify and replace
+ *                 the elements in the inner HTML and replace them. A combination of html listeners and javascript listener implementations were
+ *                 combined for this part. the HTML listener was put into place, specifically to submit to the api and reset the inner content
+ *                 Finally, similarly to the @addTodo function, it has to be called every time the page is rendered, and that means insdide
+ *                 the then methos of various API calls
+ *
+ *                 @deleteTodo records the id of the element that the user wants to delete, removes it from the backend, and finally
+ *                 re-renders the page excluding the element
+ *
+ *                 @changeStatusTodo changes the data inside of "isCompleted", and rearranges the todos by re rendering, there exists
+ *                 an If statement that classifies each todo based on its completion status
+ *
+ *                 Finally @init puts everything together, it is the only function called in this script
+ *
  */
 
 const controller = ((model, view) => {
@@ -205,9 +243,6 @@ const controller = ((model, view) => {
     const addNewTodo = () => {
         const inputBar = document.querySelector(view.viewElements.inputBar);
         const submitButton = document.querySelector(view.viewElements.submitButton);
-        const editButton = document.querySelector(view.viewElements.editButton);
-        const deleteButton = document.querySelector(view.viewElements.deleteButton);
-        const completeStatusButton = document.querySelector(view.viewElements.completeStatusButton);
 
         inputBar.addEventListener("keyup", (event) => {
             if (event.key === "Enter") {
