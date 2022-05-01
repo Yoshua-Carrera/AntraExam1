@@ -93,3 +93,7 @@ li {
     text-align: center;
     overflow: auto;
 }
+
+ul input {
+    width: 250%;
+}
